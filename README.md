@@ -75,6 +75,14 @@ Proyek ini adalah platform toko online yang dibangun menggunakan [CodeIgniter 4]
 
 Proyek menggunakan struktur MVC CodeIgniter 4:
 
+UAS:
+"membuat migration dan seeder diskon" 
+"menambahkan view dan controller diskon" 
+"menambahkan routes diskon" 
+"mengedit file header"
+"menambahkan pada file v_profil" 
+"menambahkan aplikasi dashboard toko ke public"
+
 belajar-ci-tugas/
 ├── app/
 │   ├── Config/
