@@ -77,8 +77,12 @@ Proyek menggunakan struktur MVC CodeIgniter 4:
 
 UAS:
 "membuat migration dan seeder diskon" 
-"menambahkan view dan controller diskon" 
+"menambahkan view ,model dan controller diskon" 
 "menambahkan routes diskon" 
+"menambahkan v_checkout"
+"edit file sidebar menambahkan menu diskon"
+"edit transaksicontroller"
+"edit auth controller"
 "mengedit file header"
 "menambahkan pada file v_profil" 
 "menambahkan aplikasi dashboard toko ke public"
