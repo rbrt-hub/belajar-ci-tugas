@@ -49,6 +49,13 @@
                     <span>Produk Kategori</span>
                 </a>
             </li>
+
+            <li class="nav-item">
+                <a class="nav-link <?= (uri_string() == 'diskon') ? '' : 'collapsed' ?>" href="<?= base_url('diskon') ?>">
+                    <i class="bi bi-receipt"></i>
+                    <span>Diskon</span>
+                </a>
+            </li>
         <?php endif; ?>
             
         <li class="nav-item">

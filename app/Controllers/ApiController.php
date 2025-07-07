@@ -30,35 +30,46 @@ class ApiController extends ResourceController
      *
      * @return ResponseInterface
      */
-    public function index()
-   {
-        $data = [ 
-            'results' => [],
-            'status' => ["code" => 401, "description" => "Unauthorized"]
-        ];
+   public function index()
+{
+    $data = [ 
+        'results' => [],
+        'status' => ["code" => 401, "description" => "Unauthorized"]
+    ];
 
-        $headers = $this->request->headers(); 
+    $headers = $this->request->headers(); 
 
-        array_walk($headers, function (&$value, $key) {
-            $value = $value->getValue();
-        });
+    array_walk($headers, function (&$value, $key) {
+        $value = $value->getValue();
+    });
 
-        if(array_key_exists("Key", $headers)){
-            if ($headers["Key"] == $this->apiKey) {
-                $penjualan = $this->transaction->findAll();
-            
-                foreach ($penjualan as &$pj) {
-                    $pj['details'] = $this->transaction_detail->where('transaction_id', $pj['id'])->findAll();
+    if(array_key_exists("Key", $headers)){
+        if ($headers["Key"] == $this->apiKey) {
+            $penjualan = $this->transaction->findAll();
+        
+            foreach ($penjualan as &$pj) {
+                $details = $this->transaction_detail
+                    ->where('transaction_id', $pj['id'])
+                    ->findAll();
+
+                $pj['details'] = $details;
+
+                // Hitung jumlah item
+                $jumlah = 0;
+                foreach ($details as $d) {
+                    $jumlah += $d['jumlah'];
                 }
-
-                $data['status'] = ["code" => 200, "description" => "OK"];
-                $data['results'] = $penjualan;
-
+                $pj['jumlah_item'] = $jumlah;
             }
-        } 
 
-        return $this->respond($data);
-    }
+            $data['status'] = ["code" => 200, "description" => "OK"];
+            $data['results'] = $penjualan;
+        }
+    } 
+
+    return $this->respond($data);
+}
+
     /**
      * Return the properties of a resource object.
      *

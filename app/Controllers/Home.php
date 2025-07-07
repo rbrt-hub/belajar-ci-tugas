@@ -5,7 +5,7 @@ namespace App\Controllers;
 use App\Models\ProductModel;
 use App\Models\TransactionModel;
 use App\Models\TransactionDetailModel;
-
+use App\Models\DiskonModel;
 class Home extends BaseController
 {
     protected $product;

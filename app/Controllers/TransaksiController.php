@@ -13,11 +13,9 @@ class TransaksiController extends BaseController
     protected $transaction;
     protected $transaction_detail;
 
-    public function __construct()
+    function __construct()
     {
-        helper('number');
-        helper('form');
-
+        helper(['number', 'form']);
         $this->cart = \Config\Services::cart();
         $this->client = new \GuzzleHttp\Client();
         $this->apiKey = env('COST_KEY');
@@ -34,15 +32,25 @@ class TransaksiController extends BaseController
 
     public function cart_add()
     {
+        $hargaAsli = $this->request->getPost('harga');
+
+        // Ambil diskon dari session (utama diskon_aktif, fallback diskon_nominal)
+        $diskon = session()->get('diskon_aktif') ?? session()->get('diskon_nominal') ?? 0;
+        $hargaSetelahDiskon = max(0, $hargaAsli - $diskon); // Hindari harga minus
+
         $this->cart->insert([
             'id'      => $this->request->getPost('id'),
             'qty'     => 1,
-            'price'   => $this->request->getPost('harga'),
+            'price'   => $hargaSetelahDiskon,
             'name'    => $this->request->getPost('nama'),
-            'options' => ['foto' => $this->request->getPost('foto')]
+            'options' => [
+                'foto'       => $this->request->getPost('foto'),
+                'harga_asli' => $hargaAsli,
+                'diskon'     => $diskon
+            ]
         ]);
 
-        session()->setFlashdata('success', 'Produk berhasil ditambahkan ke keranjang. (<a href="' . base_url() . 'keranjang">Lihat</a>)');
+        session()->setFlashdata('success', 'Produk berhasil ditambahkan ke keranjang. (<a href="' . base_url('keranjang') . '">Lihat</a>)');
         return redirect()->to(base_url('/'));
     }
 
@@ -85,12 +93,16 @@ class TransaksiController extends BaseController
     {
         $search = $this->request->getGet('search');
 
-        $response = $this->client->request('GET', 'https://rajaongkir.komerce.id/api/v1/destination/domestic-destination?search=' . $search . '&limit=50', [
-            'headers' => [
-                'accept' => 'application/json',
-                'key'    => $this->apiKey,
-            ],
-        ]);
+        $response = $this->client->request(
+            'GET',
+            'https://rajaongkir.komerce.id/api/v1/destination/domestic-destination?search=' . $search . '&limit=50',
+            [
+                'headers' => [
+                    'accept' => 'application/json',
+                    'key'    => $this->apiKey,
+                ],
+            ]
+        );
 
         $body = json_decode($response->getBody(), true);
         return $this->response->setJSON($body['data']);
@@ -100,18 +112,22 @@ class TransaksiController extends BaseController
     {
         $destination = $this->request->getGet('destination');
 
-        $response = $this->client->request('POST', 'https://rajaongkir.komerce.id/api/v1/calculate/domestic-cost', [
-            'multipart' => [
-                ['name' => 'origin', 'contents' => '64999'],
-                ['name' => 'destination', 'contents' => $destination],
-                ['name' => 'weight', 'contents' => '1000'],
-                ['name' => 'courier', 'contents' => 'jne']
-            ],
-            'headers' => [
-                'accept' => 'application/json',
-                'key'    => $this->apiKey,
-            ],
-        ]);
+        $response = $this->client->request(
+            'POST',
+            'https://rajaongkir.komerce.id/api/v1/calculate/domestic-cost',
+            [
+                'multipart' => [
+                    ['name' => 'origin',      'contents' => '64999'],
+                    ['name' => 'destination', 'contents' => $destination],
+                    ['name' => 'weight',      'contents' => '1000'],
+                    ['name' => 'courier',     'contents' => 'jne']
+                ],
+                'headers' => [
+                    'accept' => 'application/json',
+                    'key'    => $this->apiKey,
+                ],
+            ]
+        );
 
         $body = json_decode($response->getBody(), true);
         return $this->response->setJSON($body['data']);
@@ -121,28 +137,35 @@ class TransaksiController extends BaseController
     {
         if ($this->request->getPost()) {
             $dataForm = [
-                'username'     => $this->request->getPost('username'),
-                'total_harga'  => $this->request->getPost('total_harga'),
-                'alamat'       => $this->request->getPost('alamat'),
-                'ongkir'       => $this->request->getPost('ongkir'),
-                'status'       => 0,
-                'created_at'   => date("Y-m-d H:i:s"),
-                'updated_at'   => date("Y-m-d H:i:s")
+                'username'    => $this->request->getPost('username'),
+                'total_harga' => $this->request->getPost('total_harga'),
+                'alamat'      => $this->request->getPost('alamat'),
+                'ongkir'      => $this->request->getPost('ongkir'),
+                'status'      => 0,
+                'created_at'  => date("Y-m-d H:i:s"),
+                'updated_at'  => date("Y-m-d H:i:s")
             ];
 
             $this->transaction->insert($dataForm);
             $last_insert_id = $this->transaction->getInsertID();
 
+            // Ambil diskon dari session (aktif atau dari login)
+            $diskon = session()->get('diskon_aktif') ?? session()->get('diskon_nominal') ?? 0;
+
             foreach ($this->cart->contents() as $value) {
+                $hargaAwal = $value['options']['harga_asli'] ?? $value['price'];
+                $hargaSetelahDiskon = max($hargaAwal - $diskon, 0);
+
                 $dataFormDetail = [
-                    'transaction_id' => $last_insert_id,
-                    'product_id'     => $value['id'],
-                    'jumlah'         => $value['qty'],
-                    'diskon'         => 0,
-                    'subtotal_harga' => $value['qty'] * $value['price'],
-                    'created_at'     => date("Y-m-d H:i:s"),
-                    'updated_at'     => date("Y-m-d H:i:s")
+                    'transaction_id'  => $last_insert_id,
+                    'product_id'      => $value['id'],
+                    'jumlah'          => $value['qty'],
+                    'diskon'          => $diskon,
+                    'subtotal_harga'  => $value['qty'] * $hargaSetelahDiskon,
+                    'created_at'      => date("Y-m-d H:i:s"),
+                    'updated_at'      => date("Y-m-d H:i:s")
                 ];
+
                 $this->transaction_detail->insert($dataFormDetail);
             }
 

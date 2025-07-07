@@ -75,15 +75,44 @@ Proyek ini adalah platform toko online yang dibangun menggunakan [CodeIgniter 4]
 
 Proyek menggunakan struktur MVC CodeIgniter 4:
 
-- app/Controllers - Logika aplikasi dan penanganan request
-  - AuthController.php - Autentikasi pengguna
-  - ProdukController.php - Manajemen produk
-  - TransaksiController.php - Proses transaksi
-- app/Models - Model untuk interaksi database
-  - ProductModel.php - Model produk
-  - UserModel.php - Model pengguna
-- app/Views - Template dan komponen UI
-  - v_produk.php - Tampilan produk
-  - v_keranjang.php - Halaman keranjang
-- public/img - Gambar produk dan aset
-- public/NiceAdmin - Template admin
+belajar-ci-tugas/
+├── app/
+│   ├── Config/
+│   ├── Controllers/
+│   │   ├── Home.php
+│   │   ├── ProdukController.php
+│   │   ├── produkKategori.php
+│   │   ├── DiskonController.php
+│   │   ├── TransaksiController.php
+│   │   ├── ApiController.php
+│   │   └── AuthController.php
+│   ├── Models/
+│   │   ├── ProductModel.php
+│   │   ├── ProductCategoryModel.php
+│   │   ├── DiskonModel.php
+│   │   ├── TransactionModel.php
+│   │   ├── TransactionDetailModel.php
+│   │   └── UserModel.php
+│   ├── Views/
+|   |   ├── lauout_clear.php
+│   │   ├── layout.php
+│   │   ├── v_login.php
+│   │   ├── v_home.php
+│   │   ├── v_produk.php
+│   │   ├── v_produkPDF.php
+│   │   ├── kategori_produk.php
+│   │   ├── v_diskon.php
+│   │   ├── v_keranjang.php
+│   │   ├── v_checkout.php
+│   │   ├── v_profile.php
+│   │   ├── v_contact.php
+│   │   └── v_faq.php
+│   │   ├── welcome_message.php
+│  
+│ 
+├── public/
+│   ├── index.php
+│   ├── Dashboard-toko
+│   │   └── index.php
+│   └── assets/
+│       └── (CSS, JS, Bootstrap, dll)
